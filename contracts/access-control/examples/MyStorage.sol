@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 // Import Auth from the access-control subdirectory
-import "../access-control/Auth.sol";
+import "../Auth.sol";
 
 contract MySimpleStorage
 {
