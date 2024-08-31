@@ -24,7 +24,7 @@ contract ScoreBoard is Ownable
 	// }
 
 	// mapping (string => Game) games;
-	mapping (address => Player)	players;
+	mapping (address => Player) public	players;
 	address[] public			rankings;
 	uint256						numPlayers;
 
@@ -38,7 +38,7 @@ contract ScoreBoard is Ownable
 		players[_player] = Player(_name, 0, 0, true);
 		rankings.push(_player);
 		++numPlayers;
-		_updateRankings();
+		// _updateRankings();
 	}
 
 	function removePlayer(address _player) public onlyOwner
