@@ -24,7 +24,7 @@ contract ScoreBoard is Ownable
 	// }
 
 	// mapping (string => Game) games;
-	mapping (address => Player) public	players;
+	mapping (address => Player) private	players;
 	address[] public			rankings;
 	uint256						numPlayers;
 
@@ -92,27 +92,46 @@ contract ScoreBoard is Ownable
 	{
 		// Sort.quickSort(players, rankings, 0, rankings.length - 1);
 
-		// Sort.insertionSort(players, rankings);
+		Sort.insertionSort(players, rankings);
 
-		for (uint256 i = 0; i < rankings.length; ++i)
-		{
-			address	key = rankings[i];
-			uint256	keyScore = players[key].score;
-			int j = int(i) - 1;
+		// for (uint256 i = 0; i < rankings.length; ++i)
+		// {
+		// 	address	key = rankings[i];
+		// 	uint256	keyScore = players[key].score;
+		// 	int j = int(i) - 1;
 
-			while(j >= 0 && players[rankings[uint256(j)]].score < keyScore)
-			{
-				rankings[uint256(j + 1)] = rankings[uint256(j)];
-				--j;
-			}
-			rankings[uint256(j + 1)] = key;
-		}
+		// 	while(j >= 0 && players[rankings[uint256(j)]].score < keyScore)
+		// 	{
+		// 		rankings[uint256(j + 1)] = rankings[uint256(j)];
+		// 		--j;
+		// 	}
+		// 	rankings[uint256(j + 1)] = key;
+		// }
 
-		for (uint256 i = 0; i < rankings.length; ++i)
-		{
-			players[rankings[i]].ranking = i + 1;
-		}
+		// for (uint256 i = 0; i < rankings.length; ++i)
+		// {
+		// 	players[rankings[i]].ranking = i + 1;
+		// }
 
 	}
+
+	function getPlayer(address _player) public view returns (string memory name, uint256 score, uint256 ranking)
+	{
+		require(players[_player].exists, "Player does not exist");
+		Player memory player = players[_player];
+		return(player.name, player.score, player.ranking);
+	}
+
+	function getRankings() public view returns (address[] memory)
+	{
+		return rankings;
+	}
+
+	function getNumPlayers() public view returns (uint256)
+	{
+		return numPlayers;
+	}
+
+
 
 }
