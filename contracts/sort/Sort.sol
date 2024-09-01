@@ -28,12 +28,14 @@ library Sort
 				++i;
 
 			while (_users[_array[j]].score < pivotValue)
-				++j;
+				--j;
 
 			if (i <= j)
 			{
 				(_array[i], _array[j]) = (_array[j], _array[i]);
 				++i;
+				if (j == 0)
+					break;
 				--j;
 			}
 		}

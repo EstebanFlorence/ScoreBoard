@@ -34,14 +34,14 @@ contract ScoreBoard is Ownable
 	event PlayerRemoved(address player);
 
 
-	function addPlayer(address _player, string memory _name) public onlyOwner
+	function addPlayer(address _player, string memory _name, uint256 _score) public onlyOwner
 	{
 		require(!players[_player].exists, "Player already exists");
 
-		players[_player] = Player(_name, 0, 0, true);
+		players[_player] = Player(_name, _score, 0, true);
 		rankings.push(_player);
 		++numPlayers;
-		// _updateRankings();
+		// updateRankings();
 
 		emit PlayerAdded(_player);
 	}
@@ -85,34 +85,19 @@ contract ScoreBoard is Ownable
 
 		players[_player].score = _score;
 
-		_updateRankings();
+		updateRankings();
 	}
 
-	function _updateRankings() internal
+	function updateRankings() public onlyOwner
 	{
 		// Sort.quickSort(players, rankings, 0, rankings.length - 1);
 
 		Sort.insertionSort(players, rankings);
 
-		// for (uint256 i = 0; i < rankings.length; ++i)
-		// {
-		// 	address	key = rankings[i];
-		// 	uint256	keyScore = players[key].score;
-		// 	int j = int(i) - 1;
-
-		// 	while(j >= 0 && players[rankings[uint256(j)]].score < keyScore)
-		// 	{
-		// 		rankings[uint256(j + 1)] = rankings[uint256(j)];
-		// 		--j;
-		// 	}
-		// 	rankings[uint256(j + 1)] = key;
-		// }
-
-		// for (uint256 i = 0; i < rankings.length; ++i)
-		// {
-		// 	players[rankings[i]].ranking = i + 1;
-		// }
-
+		for (uint256 i = 0; i < rankings.length; ++i)
+		{
+			players[rankings[i]].ranking = i + 1;
+		}
 	}
 
 	function getPlayer(address _player) public view returns (string memory name, uint256 score, uint256 ranking)
