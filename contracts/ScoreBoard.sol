@@ -30,6 +30,9 @@ contract ScoreBoard is Ownable
 
 	constructor() Ownable(msg.sender) {}
 
+	event PlayerAdded(address player);
+	event PlayerRemoved(address player);
+
 
 	function addPlayer(address _player, string memory _name) public onlyOwner
 	{
@@ -39,6 +42,8 @@ contract ScoreBoard is Ownable
 		rankings.push(_player);
 		++numPlayers;
 		// _updateRankings();
+
+		emit PlayerAdded(_player);
 	}
 
 	function removePlayer(address _player) public onlyOwner
@@ -57,6 +62,8 @@ contract ScoreBoard is Ownable
 		rankings.pop();
 		delete players[_player];
 		--numPlayers;
+		
+		emit PlayerRemoved(_player);
 	}
 
 	function findPlayerIndex(address _player) internal view returns (uint)
