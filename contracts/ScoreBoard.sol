@@ -13,20 +13,28 @@ contract ScoreBoard is Ownable
 	{
 		string	name;
 		uint256	score;
-		uint256	ranking;
 		bool	exists;
 	}
 
-	// struct Game
-	// {
-	// 	string gameName;
-	// 	mapping (address => Player) players;
-	// }
+	struct Game
+	{
+		Player player1;
+		Player player2;
+	}
 
-	// mapping (string => Game) games;
+	struct Tournament
+	{
+		string	name;
+		Game[]	rounds;
+		uint256	numPlayers;
+		mapping (address => Player) players;
+	}
+
 	mapping (address => Player) private	players;
-	address[] public			rankings;
-	uint256						numPlayers;
+	Tournament[]		tournaments;	// private?
+	address[] public	rankings;
+	uint256 public		numPlayers;
+	uint256 private		addressCounter;
 
 	constructor() Ownable(msg.sender) {}
 
@@ -34,11 +42,41 @@ contract ScoreBoard is Ownable
 	event PlayerRemoved(address player);
 
 
+	function startTournament(address[] memory _addresses, string[] memory _names) public onlyOwner	// calldata?
+	{
+		require (_addresses.length == _names.length, "Addresses and players arrays must have the same lenght");
+
+		for (uint256 i = 0; i < _addresses.length; ++i)
+		{
+			address playerAddress = _addresses[i];
+			if (playerAddress == address(0))
+				playerAddress = generateNewAddress();
+			addPlayer(playerAddress, _names[i], 0);
+		}
+	}
+
+	// pseudo-address, generate real ones outside
+	function generateNewAddress() private returns (address)
+	{
+		addressCounter++;
+		return address(uint160(addressCounter));
+	}
+
+	function getNewAddress() public returns (address)
+	{
+		return generateNewAddress();
+	}
+
+	function addGame(address _player1, address _player2) public onlyOwner
+	{
+
+	}
+
 	function addPlayer(address _player, string memory _name, uint256 _score) public onlyOwner
 	{
 		require(!players[_player].exists, "Player already exists");
 
-		players[_player] = Player(_name, _score, 0, true);
+		players[_player] = Player(_name, _score, true);
 		rankings.push(_player);
 		++numPlayers;
 		// updateRankings();
@@ -50,38 +88,39 @@ contract ScoreBoard is Ownable
 	{
 		require(players[_player].exists, "Player does not exist");
 
-		uint index = findPlayerIndex(_player);
+		// rankings to contain only the tournaments' winners
+		// uint index = findPlayerIndex(_player);
 
-		require(index < rankings.length, "Player not found in rankings");
+		// require(index < rankings.length, "Player not found in rankings");
 
-		for (uint i = index; i < rankings.length - 1; ++i)
-		{
-			rankings[i] = rankings[i + 1];
-		}
+		// for (uint i = index; i < rankings.length - 1; ++i)
+		// {
+		// 	rankings[i] = rankings[i + 1];
+		// }
 
-		rankings.pop();
+		// rankings.pop();
 		delete players[_player];
 		--numPlayers;
 		
 		emit PlayerRemoved(_player);
 	}
 
-	function findPlayerIndex(address _player) internal view returns (uint)
-	{
-		for (uint i = 0; i < rankings.length; ++i)
-		{
-			if (rankings[i] == _player)
-				return i;
-		}
+	// function findPlayerIndex(address _player) internal view returns (uint)
+	// {
+	// 	for (uint i = 0; i < rankings.length; ++i)
+	// 	{
+	// 		if (rankings[i] == _player)
+	// 			return i;
+	// 	}
 
-		return rankings.length;
-	}
+	// 	return rankings.length;
+	// }
 
 	function updateScore(address _player, uint256 _score) public onlyOwner
 	{
 		require(players[_player].exists, "Player does not exist");
 
-		require(players[_player].score < _score);
+		require(players[_player].score < _score, "Update only higher score");
 
 		players[_player].score = _score;
 
@@ -94,17 +133,17 @@ contract ScoreBoard is Ownable
 
 		Sort.insertionSort(players, rankings);
 
-		for (uint256 i = 0; i < rankings.length; ++i)
-		{
-			players[rankings[i]].ranking = i + 1;
-		}
+		// for (uint256 i = 0; i < rankings.length; ++i)
+		// {
+		// 	players[rankings[i]].ranking = i + 1;
+		// }
 	}
 
-	function getPlayer(address _player) public view returns (string memory name, uint256 score, uint256 ranking)
+	function getPlayer(address _player) public view returns (string memory name, uint256 score)
 	{
 		require(players[_player].exists, "Player does not exist");
 		Player memory player = players[_player];
-		return(player.name, player.score, player.ranking);
+		return(player.name, player.score);
 	}
 
 	function getRankings() public view returns (address[] memory)
@@ -117,6 +156,9 @@ contract ScoreBoard is Ownable
 		return numPlayers;
 	}
 
-
+	function getWinner() public view returns (address winner)
+	{
+		// require()
+	}
 
 }
