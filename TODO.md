@@ -1,5 +1,6 @@
 # ScoreBoard
-[ ] Generate a real addresses for each player (if not present)
+[ ] Give players an address?
+- [ ] Generate a real address for each player (if not present)
     ex.
 	const { ethers } = require('ethers');
     async function generateAddress() {
@@ -10,12 +11,13 @@
         fs.writeFileSync('privateKey.txt', wallet.privateKey, { flag: 'wx' });
     }
     generateAddress();
+- [ ] Assign an address only to the winner
 
 [ ] Retrieve tournament data:
 - [ ] Tournament:
 - [ ] Rounds = Game array:
 - [ ] Game = 2 Player + scores:
-- [ ] Player
+- [ ] Player = name + scores
 - Implement set/create functions?
 - Get data after each Game?
 
