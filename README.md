@@ -18,8 +18,9 @@
 ## Setup
 - npx hardhat node
 - npx hardhat run --network localhost scripts/deploy.js
-- npx hardhat console --network localhost
-- 
 
 ## Test
 - npm install --save-dev @nomicfoundation/hardhat-toolbox
+- npm install --save-dev @openzeppelin/test-helpers
+- npx hardhat console --network localhost
+- npx hardhat test
