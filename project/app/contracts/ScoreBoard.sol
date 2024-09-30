@@ -24,7 +24,10 @@ contract ScoreBoard is Ownable
 
 	struct Tournament
 	{
+		uint	id;
 		string	name;
+		uint	date;
+
 		Game[]	rounds;
 		uint256	numPlayers;
 		mapping (address => Player) players;
@@ -33,41 +36,57 @@ contract ScoreBoard is Ownable
 	mapping (address => Player) private	players;
 	Tournament[]		tournaments;	// private?
 	address[] public	rankings;
+
+	uint256 public		numTournament;
 	uint256 public		numPlayers;
 	uint256 private		addressCounter;
 
 	constructor() Ownable(msg.sender) {}
 
+	event TournamentAdded(uint id, string name, uint date);
 	event PlayerAdded(address player);
 	event PlayerRemoved(address player);
 
 
-	function startTournament(address[] memory _addresses, string[] memory _names) public onlyOwner	// calldata?
-	{
-		require (_addresses.length == _names.length, "Addresses and players arrays must have the same lenght");
+	// function startTournament(address[] memory _addresses, string[] memory _names) public onlyOwner	// calldata?
+	// {
+	// 	require (_addresses.length == _names.length, "Addresses and players arrays must have the same lenght");
 
-		for (uint256 i = 0; i < _addresses.length; ++i)
-		{
-			address playerAddress = _addresses[i];
-			if (playerAddress == address(0))
-				playerAddress = generateNewAddress();
-			addPlayer(playerAddress, _names[i], 0);
-		}
+	// 	for (uint256 i = 0; i < _addresses.length; ++i)
+	// 	{
+	// 		address playerAddress = _addresses[i];
+	// 		if (playerAddress == address(0))
+	// 			playerAddress = generateNewAddress();
+	// 		addPlayer(playerAddress, _names[i], 0);
+	// 	}
+	// }
+
+	// // pseudo-address, generate real ones outside
+	// function generateNewAddress() private returns (address)
+	// {
+	// 	addressCounter++;
+	// 	return address(uint160(addressCounter));
+	// }
+
+	// function getNewAddress() public returns (address)
+	// {
+	// 	return generateNewAddress();
+	// }
+
+	// function addTournament(string memory _name, string[] memory _players, uint _data) public onlyOwner
+	// {
+
+
+	// 	numTournament++;
+	// 	emit TournamentAdded(numTournament, _name, _data);
+	// }
+
+	function addGame(Player memory _player1, Player memory _player2) public onlyOwner
+	{
+
 	}
 
-	// pseudo-address, generate real ones outside
-	function generateNewAddress() private returns (address)
-	{
-		addressCounter++;
-		return address(uint160(addressCounter));
-	}
-
-	function getNewAddress() public returns (address)
-	{
-		return generateNewAddress();
-	}
-
-	function addGame(address _player1, address _player2) public onlyOwner
+	function addPlayerNew() public onlyOwner
 	{
 
 	}
@@ -101,7 +120,7 @@ contract ScoreBoard is Ownable
 		// rankings.pop();
 		delete players[_player];
 		--numPlayers;
-		
+
 		emit PlayerRemoved(_player);
 	}
 
