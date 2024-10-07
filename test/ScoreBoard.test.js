@@ -1,189 +1,98 @@
 const { expect } = require('chai');
 const { ethers } = require('hardhat');
 
-describe( 'ScoreBoard', function ()
-	{
-        let ScoreBoard;
-        let scoreboard;
-        let owner;
-        let addr1;
-        let addr2;
-        let addr;
+describe('ScoreBoard', function ()
+{
+    let ScoreBoard;
+    let scoreboard;
+    let owner;
+    let addr1;
+    let addr2;
+    let addr;
 
-        // before(async function ()
-        // {
-        //     // Connect to local Hardhat node
-        //     const provider = new ethers.JsonRpcProvider('http://127.0.0.1:8545');
-    
-        //     // Retrieve accounts from the local node
-        //     // const accounts = await provider.listAccounts();
-        //     // [owner, addr1, addr2, ...addr] = accounts;
-        //     [owner, addr1, addr2, ...addr] = await ethers.getSigners();
+    before(async function ()
+    {
+        // Connect to local Hardhat node
+        // const provider = new ethers.JsonRpcProvider('http://127.0.0.1:8545');
 
-        //     // Set up ethers contract, representing our deployed ScoreBoard instance
-        //     const ScoreBoard = await ethers.getContractFactory('ScoreBoard');
-        //     scoreboard = await ScoreBoard.deploy();
+        // Retrieve accounts from the local node
+        [owner, addr1, addr2, ...addr] = await ethers.getSigners();
 
-        //     // Attach to an already deployed instance
-        //     // const address = '0x5FbDB2315678afecb367f032d93F642f64180aa3'; // Replace with your deployed contract address
-        //     // scoreboard = ScoreBoard.attach(address).connect(owner);
-        // });
+        // Set up ethers contract, representing our deployed ScoreBoard instance
+        const ScoreBoard = await ethers.getContractFactory('ScoreBoard');
 
-        beforeEach(async function ()
-        {
-            ScoreBoard = await ethers.getContractFactory('ScoreBoard');
-            [owner, addr1, addr2, ...addr] = await ethers.getSigners();
+        scoreboard = await ScoreBoard.deploy();
+    });
 
-            scoreboard = await ScoreBoard.deploy();
-        });
+    it('should add a tournament', async function ()
+    {
+        const tournamentName = "Test";
+        const participants = ["Aldo", "Giovanni", "Giacomo", "Davide"];
+        const allPlayers = ["Aldo", "Giacomo", "Davide", "Giovanni", "Giacomo", "Giovanni"];
+        const allScores = [0, 2, 0, 2, 0, 2];
 
-        function getRandomName()
-        {
-            const names = ["Aldo", "Giovanni", "Giacomo"];
-            return names[Math.floor(Math.random() * names.length)] + Math.floor(Math.random() * 1000);
-        }
+        await scoreboard.addTournament(tournamentName, participants, allPlayers, allScores);
 
-        function getRandomScore()
-        {
-            return Math.floor(Math.random() * 1000);
-        }
+        const tournaments = await scoreboard.getTournaments();
+        const tournament = tournaments[0];
+        expect(tournament.name).to.equal(tournamentName);
+        expect(tournament.numPlayers).to.equal(participants.length);
+    });
 
-        it('Should add a player', async function ()
-        {
-            await scoreboard.addPlayer(addr1.address, "Adamo", 0);
+    it('should have correct players in the tournament', async function ()
+    {
+        const tournaments = await scoreboard.getTournaments();
+        const tournament = tournaments[0];
+        const players = tournament.players;
 
-            const player = await scoreboard.getPlayer(addr1.address);
+        expect(players.length).to.equal(4);
+        expect(players[0].name).to.equal("Aldo");
+        expect(players[1].name).to.equal("Giovanni");
+        expect(players[2].name).to.equal("Giacomo");
+        expect(players[3].name).to.equal("Davide");
+    });
 
-            expect(player.name).to.equal("Adamo");
+    it('should have correct games in the tournament', async function ()
+    {
+        const tournaments = await scoreboard.getTournaments();
+        const tournament = tournaments[0];
+        const rounds = tournament.rounds;
 
-        });
+        expect(rounds.length).to.be.greaterThan(0);
+        expect(rounds[0].length).to.equal(2); // First round should have 2 games
 
-        it('Should remove a player', async function ()
-        {
-            await expect(scoreboard.removePlayer(addr1.address)).to.be.revertedWith("Player does not exist");
+        const game1 = rounds[0][0];
+        const game2 = rounds[0][1];
 
-            await scoreboard.addPlayer(addr1.address, "Remo", 0);
-            await scoreboard.removePlayer(addr1.address);
+        expect(game1.player1.name).to.equal("Aldo");
+        expect(game1.player2.name).to.equal("Giacomo");
+        expect(game2.player1.name).to.equal("Davide");
+        expect(game2.player2.name).to.equal("Giovanni");
+    });
 
-            await expect(scoreboard.getPlayer(addr1.address)).to.be.revertedWith("Player does not exist");
+    it('should revert when adding a tournament with mismatched players and scores', async function ()
+    {
+        const tournamentName = "Invalid Tournament";
+        const participants = ["Alice", "Bob"];
+        const allPlayers = ["Alice", "Bob"];
+        const allScores = [10]; // Mismatched length
 
-            // const player = await scoreboard.players(addr1.address);
-            // expect(player.exists).to.be.false;
-        });
+        await expect
+        (
+            scoreboard.addTournament(tournamentName, participants, allPlayers, allScores)
+        ).to.be.revertedWith("Players and Scores length mismatch");
+    });
 
-        it('Should revert when non-owner tries to add or remove a player', async function ()
-        {
-            await expect(scoreboard.connect(addr1).addPlayer(addr2.address, "Pinco", 0))
-            .to.be.reverted; //.revertedWithCustomError(scoreboard, 'OwnableUnauthorizedAccount').withArgs(addr1.address);
+    it('check tournament data', async function ()
+    {
 
-            // await scoreboard.addPlayer(addr1.address, "Lucifero", 0);
-            await expect(scoreboard.connect(addr2).removePlayer(addr1.address))
-            .to.be.reverted; //.revertedWithCustomError(scoreboard, 'OwnableUnauthorizedAccount').withArgs(addr2.address);
+    });
 
-        });
+    // it('should update rankings', async function ()
+    // {
+    //     await scoreboard.updateRankings();
+    //     const rankings = await scoreboard.getRankings();
+    //     expect(rankings.length).to.equal(4); // Assuming 4 players were added
+    // });
 
-        it('Should not revert when owner adds or removes a player', async function ()
-        {
-            await expect(scoreboard.addPlayer(addr2.address, "Pinco", 0))
-            .to.not.be.revertedWith("Not the owner");
-
-            // await scoreboard.addPlayer(addr1.address, "Lucifero", 0);
-            await expect(scoreboard.removePlayer(addr1.address))
-            .to.not.be.revertedWith("Not the owner");
-
-        });
-
-        it('Should fail to add an existing player', async function ()
-        {
-            await scoreboard.addPlayer(addr1.address, "Elisa", 0);
-
-            await expect(scoreboard.addPlayer(addr1.address, "Elisa", 0))
-            .to.be.revertedWith("Player already exists");
-        });
-
-        it('Should fail to remove a non-existing player', async function ()
-        {
-            // await scoreboard.addPlayer(addr1.address, "Elisa", 0);
-
-            await expect(scoreboard.removePlayer(addr1.address))
-            .to.be.revertedWith("Player does not exist");
-        });
-
-        it('Should update player score', async function ()
-        {
-            await scoreboard.addPlayer(addr1.address, "Ubaldo", 0);
-            await scoreboard.updateScore(addr1.address, 42);
-
-            const player = await scoreboard.getPlayer(addr1.address);
-            expect(player.score).to.equal(42);
-        });
-
-        it('Should fail to update score for non-existent player', async function ()
-        {
-            // await scoreboard.addPlayer(addr1.address, "Ubaldo", 0);
-
-            await expect(scoreboard.updateScore(addr1.address, 23))
-                .to.be.rejectedWith("Player does not exist");
-        });
-
-        it('Should get player details', async function ()
-        {
-            await scoreboard.addPlayer(addr1.address, "Dionisio", 777);
-
-            const player = await scoreboard.getPlayer(addr1.address);
-            expect(player.name).to.equal("Dionisio");
-            expect(player.score).to.equal(777);
-            // expect(player.ranking).to.equal(0);  // ranking removed from Player
-            // expect(player.ranking).to.equal(1);  // If updateRanking() in addPlayer()
-        });
-
-        it('Should get the rankings ordered', async function ()
-        {
-            const players = [];
-            for (let i = 0; i < 100; ++i)
-            {
-                const randomName = getRandomName();
-                const randomAddress = ethers.Wallet.createRandom().address;
-                const randomScore = getRandomScore();
-
-                players.push({ address: randomAddress, randomName, randomScore });
-                // await scoreboard.addPlayer(randomAddress, randomName, 0);
-                await scoreboard.addPlayer(randomAddress, randomName, randomScore);  // could revert if score is higher that the updated one
-            }
-
-            console.log("Rankings before updating scores:");
-            let rankings = await scoreboard.getRankings();
-            for (const playerAddress of rankings)
-            {
-                const player = await scoreboard.getPlayer(playerAddress);
-                console.log(`Address: ${playerAddress}, Name: ${player.name}, Score: ${player.score}`);
-            }
-
-            // for (const player of players)
-            // {
-            //     const randomScore = getRandomScore();
-            //     await scoreboard.updateScore(player.address, randomScore);   // could revert
-            // }
-
-            await scoreboard.updateRankings();
-
-            console.log("Rankings after updating scores:");
-            rankings = await scoreboard.getRankings();
-            for (const playerAddress of rankings)
-            {
-                const player = await scoreboard.getPlayer(playerAddress);
-                console.log(`Address: ${playerAddress}, Name: ${player.name}, Score: ${player.score}`);
-            }
-
-            // const rankings = await scoreboard.getRankings();
-
-            let previousScore = Number.MAX_SAFE_INTEGER;
-            for (const playerAddress of rankings)
-            {
-                const player = await scoreboard.getPlayer(playerAddress);
-                expect(player.score).to.be.at.most(previousScore);
-                previousScore = player.score;
-            }
-        });
-
-	});
+});

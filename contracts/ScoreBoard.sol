@@ -35,7 +35,7 @@ contract ScoreBoard is Ownable
 	}
 
 	uint256 public		_numTournaments;
-	Tournament[]		_tournaments;	// private?
+	Tournament[] public	_tournaments;
 	Player[] public		_rankings;
 	uint256 private		_addressCounter;
 
@@ -46,7 +46,7 @@ contract ScoreBoard is Ownable
 
 	function addTournament(string calldata name, string[] calldata participants, string[] calldata allPlayers, uint256[] calldata allScores) public onlyOwner
 	{
-		require(allPlayers.length == allScores.length, "Players and Scores lenght mismatch");
+		require(allPlayers.length == allScores.length, "Players and Scores length mismatch");
 
 		// Tournament
 		Tournament storage	newTournament = _tournaments.push();
@@ -79,7 +79,7 @@ contract ScoreBoard is Ownable
 			newTournament.rounds.push();
 			for (uint256 g = 0; g < numGames; ++g)
 			{
-				newTournament.rounds[g].push();
+				newTournament.rounds[r].push();
 			}
 		}
 		addGames(newTournament, allPlayers, allScores);
